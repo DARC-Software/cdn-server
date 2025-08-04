@@ -1,15 +1,13 @@
-# Use a lightweight JDK base image
-FROM eclipse-temurin:21-jdk-alpine
-
-# Set working directory
+# ---- Build Stage ----
+FROM gradle:8.4-jdk21 AS build
 WORKDIR /app
+COPY . .
+RUN gradle build --no-daemon
 
-# Copy the JAR file from the build stage
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
+# ---- Runtime Stage ----
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
 
-# Expose the port your app runs on
-EXPOSE 8082
-
-# Run the application
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
