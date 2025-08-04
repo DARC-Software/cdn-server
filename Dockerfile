@@ -9,7 +9,7 @@ ARG JAR_FILE=build/libs/*.jar
 COPY ${JAR_FILE} app.jar
 
 # Expose the port your app runs on
-EXPOSE 8080
+EXPOSE 8082
 
 # Run the application
 ENTRYPOINT ["java","-jar","/app/app.jar"]
