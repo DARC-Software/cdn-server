@@ -39,3 +39,38 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           no-cache: true
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - name: Checkout Helm Charts
+        uses: actions/checkout@v4
+        with:
+          repository: darc-software/helm-values
+          path: helm-values
+          ssh-key: ${{ secrets.HELM_REPO_DEPLOY_KEY }}
+
+      - name: Deploy CDN Server to K3s
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.K3S_HOST }}
+          username: ${{ secrets.K3S_USER }}
+          key: ${{ secrets.K3S_SSH_KEY }}
+          envs: IMAGE_NAME,IMAGE_TAG,RELEASE_NAME,NAMESPACE
+          script: |
+            set -e
+            export KUBECONFIG=$HOME/.kube/config
+            
+            echo "📦 Deploying CDN Server to K3s"
+            cd ~/helm-values/charts/cdn-server
+            
+            helm upgrade --install "$RELEASE_NAME" . \
+              --namespace "$NAMESPACE" \
+              --create-namespace \
+              --set image.repository=$IMAGE_NAME \
+              --set image.tag=$IMAGE_TAG \
+              --atomic --wait
+            
+            echo "✅ CDN Server Deployment complete"

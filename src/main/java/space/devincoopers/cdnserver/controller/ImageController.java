@@ -1,6 +1,8 @@
 package space.devincoopers.cdnserver.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,8 @@ import java.util.UUID;
 @RequestMapping("api/images")
 public class ImageController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ImageController.class);
+
     @Value("${api.key}")
     private String apiKey;
 
@@ -30,7 +34,10 @@ public class ImageController {
     public ResponseEntity<String> uploadImage(@PathVariable String app,
                                               @RequestParam("file")MultipartFile file,
                                               HttpServletRequest request) throws IOException {
-        if (!isAuthorized(request)) return ResponseEntity.status(403).build();
+        if (!isAuthorized(request)) {
+            logger.warn("Unauthorized upload attempt from: " + request.getRemoteAddr());
+            return ResponseEntity.status(403).build();
+        }
 
         Path appDir = rootDir.resolve(app);
         Files.createDirectories(appDir);
@@ -47,7 +54,10 @@ public class ImageController {
     public ResponseEntity<Void> deleteImage(@PathVariable String app,
                                             @PathVariable String filename,
                                             HttpServletRequest request) throws IOException {
-        if (!isAuthorized(request)) return ResponseEntity.status(403).build();
+        if (!isAuthorized(request)) {
+            logger.warn("Unauthorized delete attempt from: " + request.getRemoteAddr());
+            return ResponseEntity.status(403).build();
+        }
 
         Path filePath = rootDir.resolve(app).resolve(filename);
         Files.deleteIfExists(filePath);
