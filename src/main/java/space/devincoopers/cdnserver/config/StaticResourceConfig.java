@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit;
 public class StaticResourceConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**")
-                .addResourceLocations("file:/app/uploads")
+        registry.addResourceHandler("/{app}/**")
+                .addResourceLocations("file:/app/uploads/")
                 .setCacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic());
     }
 }

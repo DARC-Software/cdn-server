@@ -34,6 +34,7 @@ public class ImageController {
     public ResponseEntity<String> uploadImage(@PathVariable String app,
                                               @RequestParam("file")MultipartFile file,
                                               HttpServletRequest request) throws IOException {
+        logger.info("Incoming request to upload image for app: {}", app);
         if (!isAuthorized(request)) {
             logger.warn("Unauthorized upload attempt from: " + request.getRemoteAddr());
             return ResponseEntity.status(403).build();
