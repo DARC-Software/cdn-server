@@ -27,7 +27,7 @@ public class ImageController {
     private final Path rootDir = Paths.get("/app/uploads");
 
     private boolean isAuthorized(HttpServletRequest request) {
-        return apiKey.equals(request.getHeader("x-api-key"));
+        return apiKey.equals(request.getHeader("CDN_API_KEY"));
     }
 
     @PostMapping("/{app}")
