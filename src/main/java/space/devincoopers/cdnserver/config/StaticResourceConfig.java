@@ -14,8 +14,8 @@ public class StaticResourceConfig implements WebMvcConfigurer {
         String[] apps = {"portfolio"};
 
         for (String app : apps) {
-            registry.addResourceHandler("/" + app + "/**")
-                    .addResourceLocations("file:/app/uploads/" + app + "/")
+            registry.addResourceHandler("/**")
+                    .addResourceLocations("file:/app/uploads/")
                     .setCacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic());
         }
     }
