@@ -30,25 +30,25 @@ public class ImageController {
         return apiKey.equals(request.getHeader("CDN_API_KEY"));
     }
 
-    @PostMapping("/{app}")
-    public ResponseEntity<String> uploadImage(@PathVariable String app,
-                                              @RequestParam("file")MultipartFile file,
-                                              HttpServletRequest request) throws IOException {
-        logger.info("Incoming request to upload image for app: {}", app);
+    @PostMapping("/**")
+    public ResponseEntity<String> uploadImage(HttpServletRequest request,
+                                              @RequestParam("file") MultipartFile file) throws IOException {
+        String fullPath = extractRelativePath(request, "/api/images/");
+
+        logger.info("Incoming request to upload image to: {}", fullPath);
         if (!isAuthorized(request)) {
             logger.warn("Unauthorized upload attempt from: " + request.getRemoteAddr());
             return ResponseEntity.status(403).build();
         }
 
-        Path appDir = rootDir.resolve(app);
+        Path appDir = rootDir.resolve(fullPath).normalize();
         Files.createDirectories(appDir);
 
         String filename = UUID.randomUUID() + "-" + file.getOriginalFilename();
-        Path path = appDir.resolve(filename);
-        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+        Path filePath = appDir.resolve(filename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        // Return CDN path
-        return ResponseEntity.ok(app + "/" + filename);
+        return ResponseEntity.ok(fullPath + "/" + filename);
     }
 
     @DeleteMapping("{app}/{filename:.+}")
@@ -63,5 +63,10 @@ public class ImageController {
         Path filePath = rootDir.resolve(app).resolve(filename);
         Files.deleteIfExists(filePath);
         return ResponseEntity.noContent().build();
+    }
+
+    private String extractRelativePath(HttpServletRequest request, String basePath) {
+        String uri = request.getRequestURI(); // e.g. /api/images/portfolio/icon
+        return uri.substring(basePath.length()); // returns: portfolio/icon
     }
 }
