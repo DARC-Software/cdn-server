@@ -51,17 +51,19 @@ public class ImageController {
         return ResponseEntity.ok(fullPath + "/" + filename);
     }
 
-    @DeleteMapping("{app}/{filename:.+}")
-    public ResponseEntity<Void> deleteImage(@PathVariable String app,
-                                            @PathVariable String filename,
-                                            HttpServletRequest request) throws IOException {
+    @DeleteMapping("/**")
+    public ResponseEntity<Void> deleteImage(HttpServletRequest request) throws IOException {
         if (!isAuthorized(request)) {
             logger.warn("Unauthorized delete attempt from: " + request.getRemoteAddr());
             return ResponseEntity.status(403).build();
         }
 
-        Path filePath = rootDir.resolve(app).resolve(filename);
+        String relativePath = extractRelativePath(request, "/api/images/");
+
+        Path filePath = rootDir.resolve(relativePath).normalize();
         Files.deleteIfExists(filePath);
+
+        logger.info("Deleted: {}", filePath.toString());
         return ResponseEntity.noContent().build();
     }
 
